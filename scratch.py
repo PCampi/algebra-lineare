@@ -33,6 +33,13 @@ def create_b(matrix):
     return b
 
 
+def get_relative_error(xe, x):
+    """Get the relative error between two solutions, the exact xe
+    and the computed x."""
+    relative_error = np.linalg.norm(xe - x, ord=2) / np.linalg.norm(xe, ord=2)
+    return relative_error
+
+
 def solve_system(A, b, umfpack=True):
     """Solve a sparse linear system with coefficients matrix A and
     rhs b.
@@ -55,9 +62,12 @@ def solve_system(A, b, umfpack=True):
             'memory': memory used during computation
             'solver_library': 'umfpack' or 'superlu'
     """
-    # 1. converto la matrice in formato csr o csc prima di lanciare l'esecuzione
-    if A.getformat() not in {'csr', 'csc'}:
+    # 1. convert matrix to csr format before solving
+    a_format = A.getformat()
+    if a_format not in {'csr', 'csc'}:
         A = A.tocsr()
+        print("Matrix converted from '{}' format to 'csr' format.".format(
+            a_format))
 
     # TODO: insert memory profiling here and after solving the system
     start_time = datetime.datetime.now()
@@ -77,3 +87,47 @@ def solve_system(A, b, umfpack=True):
     }
 
     return result
+
+
+def solve_with_profiling(A, b, n_times=1, umfpack=True):
+    """Perform a benchmark on the given matrix-rhs for solving A*xe = b,
+    where xe is assumed to be a vector of ones [1, 1,..., 1].T
+
+    Parameters
+    ----------
+    A: scipy.sparse matrix
+        the coefficient matrix
+    
+    b: numpy.array
+        right-hand side of A*xe = b, where xe is a vector of ones
+        [1, 1, 1,..., 1].T
+    
+    n_times: int
+        number of times that the test will be repeated, default 1
+    
+    umfpack: bool
+        wether to use umfpack as a solver, default True (it's way faster)
+    
+    Returns
+    -------
+
+    """
+    results = [solve_system(A, b, umfpack=umfpack) for _ in range(n_times)]
+
+    xe = np.ones((A.shape[1], 1))
+
+    elapsed_time = [
+        result['elapsed_time'].total_seconds() for result in results
+    ]
+
+    memory_used = [result['memory'] for result in results]
+
+    relative_error = [
+        get_relative_error(xe, result['x']) for result in results
+    ]
+
+    return {
+        'elapsed_time': elapsed_time,
+        'memory': memory_used,
+        'relative_error': relative_error,
+    }
