@@ -4,3 +4,5 @@ matplotlib
 seaborn
 jupyter
 ipython
+psutil
+scikit-umfpack
