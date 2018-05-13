@@ -6,3 +6,4 @@ jupyter
 ipython
 psutil
 scikit-umfpack
+tqdm
