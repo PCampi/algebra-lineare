@@ -1,7 +1,9 @@
 """Scratch file."""
 
 import datetime
+import glob
 import os
+import gc
 
 import numpy as np
 import psutil
@@ -17,20 +19,20 @@ class InvalidMatrixFormat(Exception):
     pass
 
 
-def load_mm_matrix(name):
+def load_matrix(path):
     """Load a matrix in Matrix Market format from the data folder.
 
     Parameters
     ----------
-    name: str
-        name of the matrix file
+    path: str
+        path of the matrix file
     
     Returns
     -------
     m: scipy.sparse matrix
         the loaded matrix
     """
-    return sio.mmread('./data/' + name)
+    return sio.mmread(path)
 
 
 def create_b(matrix):
@@ -72,13 +74,6 @@ def solve_system(A, b, umfpack=True):
             'memory': memory used during computation
             'solver_library': 'umfpack' or 'superlu'
     """
-    # 1. check if matrix is in right format, else raise exception
-    a_format = A.getformat()
-    if a_format not in {'csr', 'csc'}:
-        raise InvalidMatrixFormat(
-            "Matrix is in format '{}', but only 'csr' and 'csc' are supported".
-            format(a_format))
-
     current_process = psutil.Process(os.getpid())
 
     start_time = datetime.datetime.now()
@@ -86,8 +81,8 @@ def solve_system(A, b, umfpack=True):
 
     x = slinalg.spsolve(A, b, use_umfpack=umfpack)
 
-    end_memory = current_process.memory_info()
     end_time = datetime.datetime.now()
+    end_memory = current_process.memory_info()
 
     solver_library = 'umfpack' if umfpack else 'superlu'
 
@@ -135,9 +130,12 @@ def solve_with_profiling(A, b, n_times=1, umfpack=True, progress=True):
     """
     a_format = A.getformat()
     if a_format not in {'csr', 'csc'}:
-        print("Matrix is in '{}' format, converting to 'csr'".format(a_format))
-        A = A.tocsr()
-        print("Matrix format converted")
+        raise InvalidMatrixFormat(
+            "Matrix is in format '{}', but only 'csr' and 'csc' are supported".
+            format(a_format))
+
+    print("Starting benchmark with {} runs using {}".format(
+        n_times, 'umfpack' if umfpack else 'superlu'))
 
     if progress:
         results = [solve_system(A, b) for i in tqdm.tqdm(range(n_times))]
@@ -163,6 +161,11 @@ def solve_with_profiling(A, b, n_times=1, umfpack=True, progress=True):
         get_relative_error(xe, result['x']) for result in results
     ]
 
+    del xe
+    print("Collecting memory...")
+    gc.collect()
+    print("GC collection finished")
+
     return {
         'elapsed_time': elapsed_time,
         'memory_physical': physical_memory,
@@ -171,10 +174,56 @@ def solve_with_profiling(A, b, n_times=1, umfpack=True, progress=True):
     }
 
 
-if __name__ == '__main__':
-    A = load_mm_matrix('cfd1.mtx')
-    b = create_b(A)
+def main_sdf():
+    """Main function for benchmark with symmetric positive definite matrices."""
+    print("Launching benchmark for symmetric positive definite matrices")
+    matrices_sdf = sorted(glob.glob('./data/sym-def-pos/*.mtx'))
+    print("Found these matrices:")
+    for m in matrices_sdf:
+        print("{}".format(m))
 
-    print("Solving...")
-    result = solve_with_profiling(A, b)
+    # for each matrix, launch analysis
+    results = dict()
+    for index, path in enumerate(matrices_sdf):
+        matrix_name = path.split('/')[-1][:-4]
+        A = load_matrix(path)
+        b = create_b(A)
+        print("\n\n## ---------------------- ##")
+        print("Solving for matrix {}/{}: {}".format(index, len(matrices_sdf),
+                                                    matrix_name))
+        print("Matrix dimension: {}".format(A.shape))
+
+        a_format = A.getformat()
+        # convert but try to save some memory
+        if a_format not in {'csr', 'csc'}:
+            print("Matrix is in '{}' format, converting to 'csr'".format(
+                a_format))
+            Mat = A.tocsr()
+            print("Matrix format converted")
+
+            del A
+            print("Collecting old matrix...")
+            gc.collect()
+            print("GC collection finished")
+
+            result = solve_with_profiling(Mat, b)
+
+            del b
+            print("Collecting old b...")
+            gc.collect()
+            print("GC collection finished")
+        else:
+            result = solve_with_profiling(A, b)
+            del A, b
+            print("Collecting old A and b...")
+            gc.collect()
+            print("GC collection finished")
+
+        results[matrix_name] = result
+        print("Done with matrix {}".format(matrix_name))
+
     print("Done!")
+
+
+if __name__ == '__main__':
+    main_sdf()
