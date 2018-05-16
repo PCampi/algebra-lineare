@@ -184,8 +184,9 @@ def solve_with_profiling(A, b, n_times=1, mkl=True, progress=True):
 def main_sdf():
     """Main function for benchmark with symmetric positive definite matrices."""
     print("Launching benchmark for symmetric positive definite matrices")
-    matrices_sdf = sorted(glob.glob('./data/sym-def-pos/*.mtx'))
-    print("Found these matrices:")
+    matrices_sdf = sorted(glob.glob(
+        './data/sym-def-pos/*.mtx'))[:-1]  # don't use the last big one
+    print("Will use these matrices:")
     for m in matrices_sdf:
         print("{}".format(m))
 
@@ -206,7 +207,7 @@ def main_sdf():
         print("Matrix dimension: {}".format(A.shape))
 
         b = create_b(A)
-        result = solve_with_profiling(A, b)
+        result = solve_with_profiling(A, b, n_times=30)
 
         del A, b
         print("Collecting old A and b...")
