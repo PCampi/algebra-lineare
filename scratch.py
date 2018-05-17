@@ -4,6 +4,8 @@ import datetime
 import glob
 import os
 import gc
+import csv
+import platform
 
 import numpy as np
 import psutil
@@ -181,19 +183,11 @@ def solve_with_profiling(A, b, n_times=1, mkl=True, progress=True):
     }
 
 
-def main_sdf():
-    """Main function for benchmark with symmetric positive definite matrices."""
-    print("Launching benchmark for symmetric positive definite matrices")
-    matrices_sdf = sorted(glob.glob(
-        './data/sym-def-pos/*.mtx'))[:-1]  # don't use the last big one
-    print("Will use these matrices:")
-    for m in matrices_sdf:
-        print("{}".format(m))
-
-    # for each matrix, launch analysis
+def main(matrices):
+    """Launch analysis for every matrix."""
     results = dict()
-    for index, path in enumerate(matrices_sdf):
-        matrix_name = path.split('/')[-1][:-4]
+    for index, path in enumerate(matrices):
+        matrix_name = path.split('/')[-1]
         A = load_matrix(path)
 
         if A.getformat() != 'csr':
@@ -203,11 +197,11 @@ def main_sdf():
 
         print("\n\n## ---------------------- ##")
         print("Solving for matrix {} ({}/{})".format(matrix_name, index + 1,
-                                                     len(matrices_sdf)))
+                                                     len(matrices)))
         print("Matrix dimension: {}".format(A.shape))
 
         b = create_b(A)
-        result = solve_with_profiling(A, b, n_times=30)
+        result = solve_with_profiling(A, b, n_times=31)
 
         del A, b
         print("Collecting old A and b...")
@@ -217,9 +211,95 @@ def main_sdf():
         results[matrix_name] = result
         print("Done with matrix {}".format(matrix_name))
 
-    print("Done!")
+    print("\nDone with all matrices!")
     return results
 
 
+def main_sdf():
+    """Main function for benchmark with symmetric positive definite matrices."""
+    print("Launching benchmark for symmetric positive definite matrices")
+    matrices_sdf = sorted(glob.glob(
+        './data/matrici_def_pos/*.mtx'))  # don't use the last big one
+    print("Will use these matrices:")
+    for m in matrices_sdf:
+        print("{}".format(m))
+
+    results = main(matrices_sdf)
+    return results
+
+
+def main_unsymmetric():
+    """Main function for benchmark with unsymmetric matrices."""
+    print("Launching benchmark for unsymmetric matrices")
+    matrices_unsym = sorted(glob.glob(
+        './data/matrici_non_def_pos/*.mtx'))  # don't use the last big one
+    print("Will use these matrices:")
+    for m in matrices_unsym:
+        print("{}".format(m))
+
+    results = main(matrices_unsym)
+    return results
+
+
+def log_results(results, filepath='./log.csv', count_first=False):
+    """Write the results on a file."""
+    csv_fields = [
+        'matrix',
+        'type',
+        'iter',
+        'time_mean',
+        'time_variance',
+        'time_first_run',
+        'mem_mean',
+        'mem_variance',
+        'mem_first_run',
+        'rel_error',
+        'system',
+        'language',
+        'library',
+    ]
+
+    csv_rows = []
+    for matrix_name in results_sdf:
+        time = results_sdf[matrix_name]['elapsed_time']
+        time_first_run = time[0]
+        memory = results_sdf[matrix_name]['memory_physical']
+        memory_first_run = memory[0]
+        error = results_sdf[matrix_name]['relative_error'][0]
+        system = 'Ubuntu' if platform.system() == 'Linux' else 'Windows'
+        language = 'Python'
+        library = 'mkl'
+
+        csv_row = {
+            'matrix': matrix_name,
+            'type': 'def_pos',
+            'iter': 30,
+            'time_mean': np.mean(time) if count_first else np.mean(time[1:]),
+            'time_variance': np.var(time) if count_first else np.var(time[1:]),
+            'time_first_run': time_first_run,
+            'mem_mean': np.mean(memory)
+            if count_first else np.mean(memory[1:]),
+            'mem_variance': np.var(memory)
+            if count_first else np.var(memory[1:]),
+            'mem_first_run': memory_first_run,
+            'rel_error': error,
+            'system': system,
+            'language': language,
+            'library': library,
+        }
+        csv_rows.append(csv_row)
+
+    with open(filepath, 'a') as outfile:
+        print("Saving to {}".format(filepath))
+        w = csv.DictWriter(outfile, delimiter=',', fieldnames=csv_fields)
+        for row in csv_rows:
+            w.writerow(row)
+        print("Saved!")
+
+
 if __name__ == '__main__':
-    main_sdf()
+    results_sdf = main_sdf()
+    results_unsym = main_unsymmetric()
+
+    log_results(results_sdf)
+    log_results(results_unsym)
