@@ -5,6 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Calcolo Scientifico",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "args": [
+                "mkl",
+                "3"
+            ]
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
