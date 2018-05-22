@@ -222,7 +222,7 @@ def postprocess(results: Dict[str, Union[str, float]]):
     return post
 
 
-def log_results(results, num_runs, filepath='./log.csv'):
+def log_results(results, num_runs, filepath='./python-result-log.csv'):
     """Write the results on a file."""
     if not results:
         return None
