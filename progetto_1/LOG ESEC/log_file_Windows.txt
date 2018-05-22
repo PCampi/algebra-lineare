@@ -1,0 +1,14 @@
+matrix, dimensions, type, iter, time_mean, time_var, used_memory, rel_error, system, language, library 
+apache2.mtx, 715176x715176, def_pos, 30, 1.368151e+01, 1.736460e+00, 6372.00Kb, 2.295513e+10, Windows, Matlab, Matlab 
+cfd1.mtx, 70656x70656, def_pos, 30, 2.164360e+00, 1.184822e-02, 1036.00Kb, 8.325249e+12, Windows, Matlab, Matlab 
+cfd2.mtx, 123440x123440, def_pos, 30, 5.705083e+00, 2.346996e-01, 968.00Kb, 1.677853e+12, Windows, Matlab, Matlab 
+ex15.mtx, 6867x6867, def_pos, 30, 1.727088e-02, 8.006819e-07, 220.00Kb, 8.823901e+05, Windows, Matlab, Matlab 
+G3_circuit.mtx, 1585478x1585478, def_pos, 30, 1.871988e+01, 1.302323e+00, 15756.00Kb, 3.148345e+11, Windows, Matlab, Matlab 
+parabolic_fem.mtx, 525825x525825, def_pos, 30, 3.251927e+00, 2.739304e-02, 4124.00Kb, 8.050382e+11, Windows, Matlab, Matlab 
+shallow_water1.mtx, 81920x81920, def_pos, 30, 2.864881e-01, 1.817909e-04, 1288.00Kb, 2.986149e+15, Windows, Matlab, Matlab  
+ex19.mtx, 12005x12005, non_def_pos, 30, 9.103643e-02, 5.091986e-06, 180.00Kb, 2.955501e+07, Windows, Matlab, Matlab 
+graham1.mtx, 9035x9035, non_def_pos, 30, 3.085782e-01, 1.513219e-04, 1652.00Kb, 8.041572e+09, Windows, Matlab, Matlab 
+PR02R.mtx, 161070x161070, non_def_pos, 30, 2.275202e+01, 1.835536e+00, 1948.00Kb, 3.948246e+06, Windows, Matlab, Matlab 
+raefsky3.mtx, 21200x21200, non_def_pos, 30, 7.603238e-01, 2.256951e-03, 4104.00Kb, 2.116176e+13, Windows, Matlab, Matlab 
+torso1.mtx, 116158x116158, non_def_pos, 30, 2.377816e+01, 1.337091e+00, 13884.00Kb, 2.576923e+05, Windows, Matlab, Matlab 
+water_tank.mtx, 60740x60740, non_def_pos, 30, 4.109339e+01, 1.053976e+00, 6668.00Kb, 1.130331e+11, Windows, Matlab, Matlab 

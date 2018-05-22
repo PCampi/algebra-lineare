@@ -1,0 +1,14 @@
+matrix, dimensions, type, iter, time_mean, time_var, used_memory, rel_error, system, language, library 
+apache2.mtx, 715176x715176, def_pos, 30, 1.463189e+01, 6.430341e-04, 5589.22Kb, 2.295513e+10, Ubuntu, Matlab, Matlab 
+cfd1.mtx, 70656x70656, def_pos, 30, 2.369037e+00, 2.991741e-05, 553.88Kb, 8.325249e+12, Ubuntu, Matlab, Matlab 
+cfd2.mtx, 123440x123440, def_pos, 30, 5.505661e+00, 2.185058e-04, 965.97Kb, 1.677853e+12, Ubuntu, Matlab, Matlab 
+ex15.mtx, 6867x6867, def_pos, 30, 2.534983e-02, 2.675511e-05, 2295.14Kb, 8.823901e+05, Ubuntu, Matlab, Matlab 
+G3_circuit.mtx, 1585478x1585478, def_pos, 30, 1.886162e+01, 6.966616e-04, 15732.45Kb, 3.148345e+11, Ubuntu, Matlab, Matlab 
+parabolic_fem.mtx, 525825x525825, def_pos, 30, 3.575699e+00, 1.506422e-04, 4109.92Kb, 8.050382e+11, Ubuntu, Matlab, Matlab 
+shallow_water1.mtx, 81920x81920, def_pos, 30, 4.158037e-01, 4.670102e-05, 289.19Kb, 2.986149e+15, Ubuntu, Matlab, Matlab 
+ex19.mtx, 12005x12005, non_def_pos, 30, 1.258557e-01, 3.070569e-04, 195.62Kb, 2.955501e+07, Ubuntu, Matlab, Matlab 
+graham1.mtx, 9035x9035, non_def_pos, 30, 4.564546e-01, 1.706495e-05, 1604.69Kb, 8.041572e+09, Ubuntu, Matlab, Matlab 
+PR02R.mtx, 161070x161070, non_def_pos, 30, 2.465825e+01, 2.599469e-03, 1235.97Kb, 3.948246e+06, Ubuntu, Matlab, Matlab 
+raefsky3.mtx, 21200x21200, non_def_pos, 30, 1.024225e+00, 9.520455e-05, 1409.83Kb, 2.116176e+13, Ubuntu, Matlab, Matlab 
+torso1.mtx, 116158x116158, non_def_pos, 30, 2.398947e+01, 3.418722e-01, 2182.97Kb, 2.576923e+05, Ubuntu, Matlab, Matlab 
+water_tank.mtx, 60740x60740, non_def_pos, 30, 5.516774e+01, 8.985917e-03, 447.00Kb, 1.130331e+11, Ubuntu, Matlab, Matlab 
