@@ -1,5 +1,6 @@
 """Main file."""
 
+import calendar
 import csv
 import datetime
 import gc
@@ -71,7 +72,11 @@ def get_relative_error(xe, x):
     return float(relative_error)
 
 
-def solve_with_profiling(A, b, solver_library='umfpack'):
+def solve_with_profiling(A,
+                         b,
+                         matrix_name,
+                         matrix_type,
+                         solver_library='umfpack'):
     """Perform a benchmark on the given matrix-rhs for solving A*xe = b,
     where xe is assumed to be a vector of ones [1, 1,..., 1].T
 
@@ -88,35 +93,30 @@ def solve_with_profiling(A, b, solver_library='umfpack'):
     -------
     result: Dict
         dictionary with these key-value pairs:
-            'elapsed_time': int, elapsed time
-            'memory_physical': int, physical memory used (bytes)
-            'memory_virtual': int, virtual memory used (bytes)
+            'matrix_name': name of the matrix
+            'start_time': int, start time in UNIX format
+            'end_time': int, end time in UNIX format
             'relative_error': float, relative error computed as norm2(xe - x)/norm2(xe)
             'solver_library': str, value of the solver library
             'matrix_dimensions': str, value of NxM
+            'umfpack_error': 1 if UMFPACK raised MemoryError, else 0
     """
-    current_process = psutil.Process(os.getpid())
     umfpack_mem_error = False
 
     if solver_library == 'mkl':
-        start_time = datetime.datetime.now()
-        start_memory = current_process.memory_info()
+        start_time = datetime.datetime.utcnow().utctimetuple()
 
         x = pypardiso.spsolve(A, b)
 
-        end_time = datetime.datetime.now()
-        end_memory = current_process.memory_info()
+        end_time = datetime.datetime.utcnow().utctimetuple()
     elif solver_library == 'superlu':
-        start_time = datetime.datetime.now()
-        start_memory = current_process.memory_info()
+        start_time = datetime.datetime.utcnow().utctimetuple()
 
         x = scipy.sparse.linalg.spsolve(A, b, use_umfpack=False)
 
-        end_time = datetime.datetime.now()
-        end_memory = current_process.memory_info()
+        end_time = datetime.datetime.utcnow().utctimetuple()
     elif solver_library == 'umfpack':
-        start_time = datetime.datetime.now()
-        start_memory = current_process.memory_info()
+        start_time = datetime.datetime.utcnow().utctimetuple()
 
         try:
             x = scipy.sparse.linalg.spsolve(A, b, use_umfpack=True)
@@ -124,34 +124,34 @@ def solve_with_profiling(A, b, solver_library='umfpack'):
             print("Got MemoryError for UMFPACK!")
             umfpack_mem_error = True
 
-        end_time = datetime.datetime.now()
-        end_memory = current_process.memory_info()
+        end_time = datetime.datetime.utcnow().utctimetuple()
     else:
         raise ValueError(
             "Wrong value for parameter 'solver_library', shoud be in {'mkl', 'umfpack', 'superlu'}, got {} instead.".
             format(solver_library))
 
     xe = np.ones((A.shape[1], ))
-    elapsed_time = (
-        end_time - start_time).total_seconds() if not umfpack_mem_error else -1
-    physical_memory = end_memory.rss - start_memory.rss if not umfpack_mem_error else -1
-    virtual_memory = end_memory.vms - start_memory.vms if not umfpack_mem_error else -1
+    # FIXME: datetime lo voglio in millisecondi!
+    unix_start_time = calendar.timegm(start_time)
+    unix_end_time = calendar.timegm(end_time)
     relative_error = get_relative_error(xe, x) if not umfpack_mem_error else -1
 
     del xe
     gc.collect()
 
     return {
-        'elapsed_time': elapsed_time,
-        'memory_physical': physical_memory,
-        'memory_virtual': virtual_memory,
+        'matrix_name': matrix_name,
+        'matrix_type': matrix_type,
+        'matrix_dimensions': "{}x{}".format(A.shape[0], A.shape[1]),
+        'start_time': unix_start_time,
+        'end_time': unix_end_time,
         'relative_error': relative_error,
         'solver_library': solver_library,
-        'matrix_dimensions': "{}x{}".format(A.shape[0], A.shape[1])
+        'umfpack_error': 1 if umfpack_mem_error else 0,
     }
 
 
-def main(matrices, library='umfpack', num_runs=30):
+def main(matrices, matrices_type: str, library='umfpack', num_runs=30):
     """Launch analysis for every matrix.
     Makes num_runs different runs loading each matrix every time to prevent
     smart caching from the solver libraries.
@@ -178,7 +178,7 @@ def main(matrices, library='umfpack', num_runs=30):
     for m in matrices:
         print("{}".format(m))
 
-    results = {m_path.split('/')[-1]: [] for m_path in matrices}
+    results = []
 
     for i in range(num_runs):
         print("\n## ------------------------ ##")
@@ -195,8 +195,9 @@ def main(matrices, library='umfpack', num_runs=30):
                 i + 1, matrix_name, index + 1, len(matrices), A.shape))
             b = create_b(A)
 
-            result = solve_with_profiling(A, b, solver_library=library)
-            results[matrix_name].append(result)
+            result = solve_with_profiling(
+                A, b, matrix_name, matrices_type, solver_library=library)
+            results.append(result)
 
             del A, b
             gc.collect()
@@ -206,23 +207,24 @@ def main(matrices, library='umfpack', num_runs=30):
     return results
 
 
-def postprocess(results: Dict[str, Union[str, float]]):
-    """Postprocessing."""
-    post = {
-        matrix_name: {key: []
-                      for key in results[matrix_name][0]}
-        for matrix_name in results
-    }
+# def postprocess(results: Dict[str, Union[str, float]]):
+#     """Postprocessing."""
+#     post = {
+#         matrix_name: {key: []
+#                       for key in results[matrix_name][0]}
+#         for matrix_name in results
+#     }
 
-    for matrix_name in post:
-        for run_result in results[matrix_name]:
-            for key in run_result:
-                post[matrix_name][key].append(run_result[key])
+#     for matrix_name in post:
+#         for run_result in results[matrix_name]:
+#             for key in run_result:
+#                 post[matrix_name][key].append(run_result[key])
 
-    return post
+#     return post
 
 
-def log_results(results, num_runs, filepath='./python-result-log.csv'):
+def log_results(results: Dict[str, Union[str, int]],
+                filename: str = 'python-result-log'):
     """Write the results on a file."""
     if not results:
         return None
@@ -231,81 +233,83 @@ def log_results(results, num_runs, filepath='./python-result-log.csv'):
         'matrix',
         'dimensions',
         'type',
-        'iter',
-        'time_mean',
-        'time_variance',
-        'mem_mean',  # in bytes
-        'mem_variance',  # in bytes
+        'start_time',
+        'end_time',
         'rel_error',
         'system',
-        'language',
         'library',
+        'umfpack_error',
     ]
 
+    system_type = 'ubuntu' if platform.system == 'Linux' else 'windows'
+
     # se non esiste il file, crealo con le colonne giuste
+    filepath = './{}-{}.csv'.format(system_type, filename)
     myfile = pathlib.Path(filepath)
     if not myfile.is_file():
         with open(filepath, 'w') as outfile:
             outfile.write(",".join(csv_fields) + "\n")
 
     csv_rows = []
-    for matrix_name in results_sdf:
-        dimensions = results[matrix_name]['matrix_dimensions'][0]
-        time = results[matrix_name]['elapsed_time']
-        memory = np.array(results[matrix_name]['memory_physical'])
-        error = results[matrix_name]['relative_error'][0]
-        system = 'Ubuntu' if platform.system() == 'Linux' else 'Windows'
-        language = 'Python'
-        library = results[matrix_name]['solver_library'][0]
-
-        csv_row = {
-            'matrix': matrix_name,
-            'dimensions': dimensions,
-            'type': 'def_pos',
-            'iter': num_runs,
-            'time_mean': np.mean(time),
-            'time_variance': np.var(time),
-            'mem_mean': np.mean(memory[memory > 0]),
-            'mem_variance': np.var(memory[memory > 0]),
-            'rel_error': error,
-            'system': system,
-            'language': language,
-            'library': library,
+    for result in results:
+        row = {
+            'matrix': result['matrix_name'],
+            'dimensions': result['matrix_dimensions'],
+            'type': result['matrix_type'],
+            'start_time': result['start_time'],
+            'end_time': result['end_time'],
+            'rel_error': result['relative_error'],
+            'system': system_type,
+            'library': result['solver_library'],
+            'umfpack_error': result['umfpack_error'],
         }
-        csv_rows.append(csv_row)
+        csv_rows.append(row)
 
     with open(filepath, 'a') as outfile:
         print("Saving to {}".format(filepath))
         w = csv.DictWriter(outfile, delimiter=',', fieldnames=csv_fields)
         for row in csv_rows:
             w.writerow(row)
-        print("Saved!")
+    print("Saved!")
 
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:
         library = sys.argv[1]
+
+        if library not in {'umfpack', 'superlu', 'mkl'}:
+            raise ValueError(
+                "Accepted values for library are: 'mkl', 'superlu', 'umfpack', got {} instead.".
+                format(library))
+
         n_runs = int(sys.argv[2])
+
+        if not (n_runs >= 1):
+            raise ValueError(
+                "Number of runs must be >= 1, got {} instead".format(n_runs))
     else:
         raise ValueError(
             "Please, provide a choice for the solver library an run number:" +
             "you should call this script as 'python scratch.py solver runs' where solver is {'mkl', 'superlu', 'umfpack'} and runs an integer > 0."
         )
 
-    library = sys.argv[1]
-    if library not in {'umfpack', 'superlu', 'mkl'}:
-        raise ValueError(
-            "Accepted values for library are: 'mkl', 'superlu', 'umfpack', got {} instead.".
-            format(library))
+    print("\n------------------------------")
+    print("Current process PID is: {}".format(os.getpid()))
+    print("------------------------------\n")
+
+    ready = False
+    while not ready:
+        user_is_ready = input("Are you ready? (y/n)")
+        if user_is_ready == 'y':
+            ready = True
 
     symmetric_matrices = sorted(glob.glob('./data/matrici_def_pos/*.mtx'))
-    sdf = main(symmetric_matrices, library=library, num_runs=n_runs)
-    results_sdf = postprocess(sdf)
+    results_sdf = main(
+        symmetric_matrices, 'def_pos', library=library, num_runs=n_runs)
 
-    unsymmetric_matrices = sorted(
-        glob.glob('./data/matrici_non_def_pos/*.mtx'))
-    results_unsym = main(
-        unsymmetric_matrices, library=library, num_runs=n_runs)
+    # unsym_matrices = sorted(glob.glob('./data/matrici_non_def_pos/*.mtx'))
+    # results_unsym = main(
+    #     unsym_matrices, 'non_def_pos', library=library, num_runs=n_runs)
 
-    log_results(results_sdf, n_runs)
-    log_results(results_unsym, n_runs)
+    log_results(results_sdf, filename='python-result-log')
+    # log_results(results_unsym, filename='python-result-log')

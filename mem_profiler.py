@@ -25,6 +25,9 @@ if __name__ == '__main__':
     sampling_interval = float(sys.argv[2])  # the sampling interval
     filepath = sys.argv[3]
 
+    system = 'ubuntu' if platform.system == 'Linux' else 'windows'
+    filepath = system + "-" + filepath
+
     if not psutil.pid_exists(pid):
         raise ValueError("Wrong pid {} doesn't exist".format(pid))
 
@@ -48,6 +51,7 @@ if __name__ == '__main__':
                 memory = process.memory_info()
                 physical_memory = memory.rss / megabyte
                 virtual_memory = memory.vms / megabyte
+                # FIXME: datetime lo voglio in millisecondi!
                 now = datetime.datetime.utcnow().utctimetuple()
                 unix_time = calendar.timegm(now)
                 row = {
@@ -64,5 +68,10 @@ if __name__ == '__main__':
                     sample = 0
                 time.sleep(sampling_interval)
 
+    except (ProcessLookupError, psutil._exceptions.NoSuchProcess):
+        print(
+            "\nSampled process with pid {} has terminated. Results are in {}".
+            format(pid, filepath))
+
     except KeyboardInterrupt:
-        print("\nSampling finished. Results are in {}".format(filepath[2:]))
+        print("\nSampling finished. Results are in {}".format(filepath))
