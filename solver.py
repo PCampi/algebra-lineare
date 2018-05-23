@@ -304,9 +304,9 @@ if __name__ == '__main__':
     results_sdf = main(
         symmetric_matrices, 'def_pos', library=library, num_runs=n_runs)
 
-    # unsym_matrices = sorted(glob.glob('./data/matrici_non_def_pos/*.mtx'))
-    # results_unsym = main(
-    #     unsym_matrices, 'non_def_pos', library=library, num_runs=n_runs)
+    unsym_matrices = sorted(glob.glob('./data/matrici_non_def_pos/*.mtx'))
+    results_unsym = main(
+        unsym_matrices, 'non_def_pos', library=library, num_runs=n_runs)
 
     log_results(results_sdf, filename='python-result-log')
-    # log_results(results_unsym, filename='python-result-log')
+    log_results(results_unsym, filename='python-result-log')
