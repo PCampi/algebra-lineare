@@ -2,13 +2,13 @@
 
 import calendar
 import csv
-import datetime
 import gc
 import glob
 import os
 import pathlib
 import platform
 import sys
+import time
 from collections import defaultdict
 from typing import Dict, Union
 
@@ -104,19 +104,19 @@ def solve_with_profiling(A,
     umfpack_mem_error = False
 
     if solver_library == 'mkl':
-        start_time = datetime.datetime.utcnow().utctimetuple()
+        start_time = time.time()
 
         x = pypardiso.spsolve(A, b)
 
-        end_time = datetime.datetime.utcnow().utctimetuple()
+        end_time = time.time()
     elif solver_library == 'superlu':
-        start_time = datetime.datetime.utcnow().utctimetuple()
+        start_time = time.time()
 
         x = scipy.sparse.linalg.spsolve(A, b, use_umfpack=False)
 
-        end_time = datetime.datetime.utcnow().utctimetuple()
+        end_time = time.time()
     elif solver_library == 'umfpack':
-        start_time = datetime.datetime.utcnow().utctimetuple()
+        start_time = time.time()
 
         try:
             x = scipy.sparse.linalg.spsolve(A, b, use_umfpack=True)
@@ -124,16 +124,13 @@ def solve_with_profiling(A,
             print("Got MemoryError for UMFPACK!")
             umfpack_mem_error = True
 
-        end_time = datetime.datetime.utcnow().utctimetuple()
+        end_time = time.time()
     else:
         raise ValueError(
             "Wrong value for parameter 'solver_library', shoud be in {'mkl', 'umfpack', 'superlu'}, got {} instead.".
             format(solver_library))
 
     xe = np.ones((A.shape[1], ))
-    # FIXME: datetime lo voglio in millisecondi!
-    unix_start_time = calendar.timegm(start_time)
-    unix_end_time = calendar.timegm(end_time)
     relative_error = get_relative_error(xe, x) if not umfpack_mem_error else -1
 
     del xe
@@ -143,8 +140,8 @@ def solve_with_profiling(A,
         'matrix_name': matrix_name,
         'matrix_type': matrix_type,
         'matrix_dimensions': "{}x{}".format(A.shape[0], A.shape[1]),
-        'start_time': unix_start_time,
-        'end_time': unix_end_time,
+        'start_time': start_time,
+        'end_time': end_time,
         'relative_error': relative_error,
         'solver_library': solver_library,
         'umfpack_error': 1 if umfpack_mem_error else 0,

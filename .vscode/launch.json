@@ -15,6 +15,17 @@
             ]
         },
         {
+            "name": "Python: Profile memory",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "args": [
+                "2575",
+                "0.1",
+                "python-mem-log"
+            ]
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
