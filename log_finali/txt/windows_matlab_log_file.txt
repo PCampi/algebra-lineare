@@ -1,0 +1,14 @@
+matrix, dimensions, type, iter, times_mean, times_var, rel_error, system 
+G3_circuit.mtx, 1585478x1585478, def_pos, 30, 1.821058e+01, 1.963873e+00, 3.148345e+11, Windows 
+apache2.mtx, 715176x715176, def_pos, 30, 1.617134e+01, 8.667893e-01, 2.295513e+10, Windows 
+cfd1.mtx, 70656x70656, def_pos, 30, 2.625041e+00, 2.227819e-01, 8.325249e+12, Windows 
+cfd2.mtx, 123440x123440, def_pos, 30, 6.410763e+00, 2.573814e-01, 1.677853e+12, Windows 
+ex15.mtx, 6867x6867, def_pos, 30, 3.423728e-02, 7.200485e-06, 8.823901e+05, Windows 
+parabolic_fem.mtx, 525825x525825, def_pos, 30, 3.182598e+00, 3.661033e-03, 8.050382e+11, Windows 
+shallow_water1.mtx, 81920x81920, def_pos, 30, 3.498605e-01, 1.935402e-04, 2.986149e+15, Windows 
+PR02R.mtx, 161070x161070, non_def_pos, 30, 2.422936e+01, 9.990571e-01, 3.948246e+06, Windows 
+ex19.mtx, 12005x12005, non_def_pos, 30, 1.199154e-01, 7.859782e-05, 2.955501e+07, Windows 
+graham1.mtx, 9035x9035, non_def_pos, 30, 3.836268e-01, 1.514581e-04, 8.041572e+09, Windows 
+raefsky3.mtx, 21200x21200, non_def_pos, 30, 7.775682e-01, 1.111556e-03, 2.116176e+13, Windows 
+torso1.mtx, 116158x116158, non_def_pos, 30, 2.688846e+01, 1.021505e+00, 2.576923e+05, Windows 
+water_tank.mtx, 60740x60740, non_def_pos, 30, 4.321797e+01, 6.156463e-01, 1.130331e+11, Windows 
