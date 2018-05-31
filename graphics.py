@@ -1,5 +1,5 @@
 """Documento per grafici del progetto 1."""
-import pandas as ps
+import pandas as pd
 from matplotlib import pyplot as plt
 
 
@@ -12,20 +12,36 @@ def calculate_col_v_memory_mean(t_start, t_stop, mem_log):
     return mem_mean
 
 
-def calculate_col_p_memory_mean(t_start, t_stop, mem_log):
-    mem_mean = 0
-    memory_col = mem_log[mem_log['timestamp'] >= t_start]
-    memory_col = memory_col[memory_col['timestamp'] <= t_stop]
-    mem_mean = memory_col['memory_physical(kB)'].max(
-    ) - memory_col['memory_physical(kB)'].min()
-    return mem_mean
+def calculate_col_p_memory_maxmin(t_start, t_stop, mem_log):
+    """Calculate the max difference in memory used between timestamps.
+
+    Parameters
+    ----------
+    t_start: float
+        start time
+    
+    t_stop: float
+        end time
+    
+    mem_log: pandas.DataFrame
+        dataframe containing columns 'timestamp' and 'memory_physical(kB)'
+    
+    Returns
+    -------
+    used_memory: float
+        max(memory) - min(memory) during the time span between start and stop
+    """
+    m = mem_log.query('timestamp >= @t_start and timestamp <= @t_stop')
+    used_memory = m['memory_physical(kB)'].max()\
+                - m['memory_physical(kB)'].min()
+
+    return used_memory
 
 
-def calculate_mem_mean(matrix, log):
-    mem_mean = 0
-    memory_col = log[log['matrix'] == matrix]
-    mem_mean = memory_col['memory'].max() - memory_col['memory'].min()
-    return mem_mean
+def calculate_mem_maxmin(matrix_name, data) -> int:
+    memory_col = data[data['matrix'] == matrix_name]['memory']
+    used_mem = memory_col.max() - memory_col.min()
+    return used_mem
 
 
 def create_python_dataframe(log, memory_log):
@@ -34,8 +50,8 @@ def create_python_dataframe(log, memory_log):
 
     mem_values = []
     for index, row in log.iterrows():
-        current_mem_val = calculate_col_p_memory_mean(row[3], row[4],
-                                                      memory_log)
+        current_mem_val = calculate_col_p_memory_maxmin(
+            row[3], row[4], memory_log)
         mem_values.append(current_mem_val)
     log['memory'] = mem_values
 
@@ -47,80 +63,73 @@ def create_python_dataframe(log, memory_log):
 
 
 def create_graphics():
-    #Documenti Ubuntu
-    ubuntu_matlab_log = ps.read_csv(
+    # Documenti Ubuntu
+    ubuntu_matlab_log = pd.read_csv(
         "./log_finali/ubuntu_matlab_log_file.csv",
         sep=', ',
         encoding="utf-8-sig")
-    ubuntu_matlab_times = ps.read_csv(
+    ubuntu_matlab_times = pd.read_csv(
         "./log_finali/ubuntu_matlab_times_log_file.csv",
         sep=', ',
         encoding="utf-8-sig")
-    ubuntu_matlab_memory = ps.read_csv(
+    ubuntu_matlab_memory = pd.read_csv(
         "./log_finali/ubuntu_matlab_memory_log.csv",
         sep=',',
         encoding="utf-8-sig")
 
-    ubuntu_python_log = ps.read_csv(
+    ubuntu_python_log = pd.read_csv(
         "./log_finali/ubuntu_python_result_log.csv",
         sep=',',
         encoding="utf-8-sig")
-    ubuntu_python_memory = ps.read_csv(
+    ubuntu_python_memory = pd.read_csv(
         "./log_finali/ubuntu_python_memory_log.csv",
         sep=',',
         encoding="utf-8-sig")
 
-    #Documenti Windows
-    windows_matlab_log = ps.read_csv(
+    # Documenti Windows
+    windows_matlab_log = pd.read_csv(
         "./log_finali/windows_matlab_log_file.csv",
         sep=', ',
         encoding="utf-8-sig")
-    windows_matlab_times = ps.read_csv(
+    windows_matlab_times = pd.read_csv(
         "./log_finali/windows_matlab_times_log_file.csv",
         sep=', ',
         encoding="utf-8-sig")
-    windows_matlab_memory = ps.read_csv(
+    windows_matlab_memory = pd.read_csv(
         "./log_finali/windows_matlab_memory_log.csv",
         sep=',',
         encoding="utf-8-sig")
 
-    windows_python_log = ps.read_csv(
+    windows_python_log = pd.read_csv(
         "./log_finali/windows_python_result_log.csv",
         sep=',',
         encoding="utf-8-sig")
-    windows_python_memory = ps.read_csv(
+    windows_python_memory = pd.read_csv(
         "./log_finali/windows_python_memory_log.csv",
         sep=',',
         encoding="utf-8-sig")
 
     #Preparazione dati Matlab
-    current_mem_val = 0
 
-    ubuntu_first_mem_values = []
-    for index, row in ubuntu_matlab_times.iterrows():
-        current_mem_val = calculate_col_p_memory_mean(row[4], row[5],
-                                                      ubuntu_matlab_memory)
-        ubuntu_first_mem_values.append(current_mem_val)
-    ubuntu_matlab_times['memory'] = ubuntu_first_mem_values
+    ubuntu_matlab_times['memory'] = [
+        calculate_col_p_memory_maxmin(r[4], r[5], ubuntu_matlab_memory)
+        for _, r in ubuntu_matlab_times.iterrows()
+    ]
 
-    ubuntu_final_mem_values = []
-    for index, row in ubuntu_matlab_log.iterrows():
-        current_mem_val = calculate_mem_mean(row[0], ubuntu_matlab_times)
-        ubuntu_final_mem_values.append(current_mem_val)
-    ubuntu_matlab_log['memory'] = ubuntu_final_mem_values
+    ubuntu_matlab_log['memory'] = [
+        calculate_mem_maxmin(matrix_name, ubuntu_matlab_times)
+        for matrix_name in ubuntu_matlab_log['matrix']
+    ]
 
-    windows_first_mem_values = []
-    for index, row in windows_matlab_times.iterrows():
-        current_mem_val = calculate_col_p_memory_mean(row[4], row[5],
-                                                      windows_matlab_memory)
-        windows_first_mem_values.append(current_mem_val)
-    windows_matlab_times['memory'] = windows_first_mem_values
+    windows_matlab_times['memory'] = [
+        calculate_col_p_memory_maxmin(r[4], r[5], windows_matlab_memory)
+        for _, r in windows_matlab_times.iterrows()
+    ]
 
-    windows_final_mem_values = []
-    for index, row in windows_matlab_log.iterrows():
-        current_mem_val = calculate_mem_mean(row[0], windows_matlab_times)
-        windows_final_mem_values.append(current_mem_val)
-    windows_matlab_log['memory'] = windows_final_mem_values
+    windows_matlab_log['memory'] = [
+        calculate_mem_maxmin(matrix_name, windows_matlab_times)
+        for matrix_name in ubuntu_matlab_log['matrix']
+    ]
 
     print("Aggiunta memoria completata")
 
