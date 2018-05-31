@@ -204,22 +204,6 @@ def main(matrices, matrices_type: str, library='umfpack', num_runs=30):
     return results
 
 
-# def postprocess(results: Dict[str, Union[str, float]]):
-#     """Postprocessing."""
-#     post = {
-#         matrix_name: {key: []
-#                       for key in results[matrix_name][0]}
-#         for matrix_name in results
-#     }
-
-#     for matrix_name in post:
-#         for run_result in results[matrix_name]:
-#             for key in run_result:
-#                 post[matrix_name][key].append(run_result[key])
-
-#     return post
-
-
 def log_results(results: Dict[str, Union[str, int]],
                 filename: str = 'python-result-log'):
     """Write the results on a file."""

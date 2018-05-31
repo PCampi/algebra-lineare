@@ -1,9 +1,6 @@
 function [ ] = solver_function( matrix, type )
 %Funzione per la risoluzione di una matrice
 
-    import matlab.net.*
-    import matlab.net.http.*
-
     system = 'Windows';
 
     fprintf("Caricamento matrice: " + matrix + "... \n");
@@ -21,26 +18,20 @@ function [ ] = solver_function( matrix, type )
     x = 0;
     t = 0;
     
-    uri = URI('http://localhost:5050/memory');
-
     for i = 1:30
         
         pid = feature('getpid');
-        req_start = matlab.net.http.RequestMessage('post',[], pid + ...
-            "|" + matrix + "|" + i + "|start");
-        req_stop = matlab.net.http.RequestMessage('post',[],pid + ...
-            "|" + matrix + "|" + i + "|stop");
         fprintf("Inizio risoluzione matrice: " + matrix + " " + i + "\n")
-        send(req_start, uri);
+
         tic;
         x = A\b;
         t = toc;
-        send(req_stop, uri);
+
         fprintf("Fine risoluzione matrice: " + matrix + " " + i + "\n")
         times = [times t];
 
         abs_error = abs(xe-x);
-        rel_error = abs(abs_error)\abs(x);
+        rel_error = abs_error/abs(x);
         errors = [errors rel_error];
 
     end
