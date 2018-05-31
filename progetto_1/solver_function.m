@@ -7,32 +7,28 @@ function [ ] = solver_function( matrix, type )
     [ A, rows, cols, entries, rep, field, symm ] = mm_to_msm("matrici_" + type + "\" + matrix);
     fprintf("Caricamento matrice: " + matrix + " completato! \n");
 
-    times = [];
-    errors = [];
+    
 
     [m, n] = size(A);
     dimensions = m + "x" + n;
     xe = ones(m, 1);
+    
+    times = zeros(30, 1);
+    errors = zeros(30, 1);
+    
     b = A*xe;
-
-    x = 0;
-    t = 0;
     
     for i = 1:30
         
-        pid = feature('getpid');
-        fprintf("Inizio risoluzione matrice: " + matrix + " " + i + "\n")
-
         tic;
         x = A\b;
         t = toc;
 
-        fprintf("Fine risoluzione matrice: " + matrix + " " + i + "\n")
-        times = [times t];
+        times(i, 1) = t;
 
-        abs_error = abs(xe-x);
-        rel_error = abs_error/abs(x);
-        errors = [errors rel_error];
+        abs_error = norm(xe-x);
+        rel_error = abs_error/norm(x);
+        errors(i, 1) = rel_error;
 
     end
     
