@@ -3,3 +3,5 @@ data
 .vscode/.ropeproject
 progetto_1/matrici_def_pos/
 progetto_1/matrici_non_def_pos/
+.mypy_cache
+.ipynb_checkpoints
